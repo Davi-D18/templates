@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, field_validator
 
-from car_api.core.messages import users
+from {{ cookiecutter.project_slug }}.core.messages import users
 
 
 class Token(BaseModel):
@@ -13,7 +13,8 @@ class LoginRequest(BaseModel):
     password: str
 
     @field_validator("password")
-    def password_min_length(cls, v):
-        if len(v) < 6:
-            raise ValueError(users.USER_MIN_LENGTH)
-        return v
+    @classmethod
+    def password_min_length(cls, value: str) -> str:
+        if len(value) < 8:
+            raise ValueError(users.PASSWORD_MIN_LENGTH)
+        return value

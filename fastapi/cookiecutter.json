@@ -1,0 +1,30 @@
+{
+  "project_name": "My FastAPI Project",
+  "project_slug": "{{ cookiecutter.project_name|slugify|replace('-', '_') }}",
+  "description": "A FastAPI project.",
+  "author_name": "Your Name",
+  "author_email": "you@example.com",
+  "version": "0.1.0",
+  "database": ["sqlite3", "postgresql", "mysql"],
+  "dependency_manager": ["poetry", "pip"],
+  "use_authentication": ["yes", "no"],
+  "use_documentation": ["yes", "no"],
+  "use_docker": ["yes", "no"],
+  "use_tests": ["yes", "no"],
+  "license": ["MIT", "BSD-3-Clause", "GPL-3.0", "Proprietary"],
+  "__prompts__": {
+    "project_name": "Project name",
+    "project_slug": "Project slug (directory/package name)",
+    "description": "Short project description",
+    "author_name": "Author name",
+    "author_email": "Author email",
+    "version": "Initial version",
+    "database": "Database engine",
+    "dependency_manager": "Dependency manager",
+    "use_authentication": "Include JWT authentication?",
+    "use_documentation": "Expose API docs (/docs, /redoc)?",
+    "use_docker": "Include Docker and docker-compose?",
+    "use_tests": "Include pytest setup?",
+    "license": "License"
+  }
+}

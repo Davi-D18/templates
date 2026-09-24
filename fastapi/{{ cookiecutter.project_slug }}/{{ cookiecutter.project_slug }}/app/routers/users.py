@@ -1,40 +1,42 @@
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from car_api.core.configs.auth import Authentication
-from car_api.core.configs.database import get_session
-from car_api.core.configs.security import get_password_hash
-from car_api.core.messages.users import EMAIL_EXISTS, USER_NOT_EXISTS, USERNAME_EXISTS
-from car_api.models.users import User
-from car_api.schemas.users import UserListPublicSchema, UserPublicSchema, UserSchema
+from {{ cookiecutter.project_slug }}.app.models.users import User
+from {{ cookiecutter.project_slug }}.app.schemas.users import (
+    UserListPublicSchema,
+    UserPublicSchema,
+    UserSchema,
+    UserUpdateSchema,
+)
+from {{ cookiecutter.project_slug }}.core.configs.auth import Authentication
+from {{ cookiecutter.project_slug }}.core.configs.database import get_session
+from {{ cookiecutter.project_slug }}.core.configs.security import get_password_hash
+from {{ cookiecutter.project_slug }}.core.messages.users import (
+    EMAIL_EXISTS,
+    USER_NOT_EXISTS,
+    USERNAME_EXISTS,
+)
 
 router = APIRouter()
 
 
 @router.post(
-    path="/",
+    "/",
     response_model=UserPublicSchema,
     status_code=status.HTTP_201_CREATED,
     summary="Criar novo usuário",
 )
-async def create_user(
-    user: UserSchema,
-    db: AsyncSession = Depends(get_session),
-):
+async def create_user(user: UserSchema, db: AsyncSession = Depends(get_session)):
     username_exists = await db.scalar(
         select(exists().where(User.username == user.username))
     )
-
     if username_exists:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=USERNAME_EXISTS
         )
 
     email_exists = await db.scalar(select(exists().where(User.email == user.email)))
-
     if email_exists:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=EMAIL_EXISTS
@@ -45,7 +47,6 @@ async def create_user(
         email=user.email,
         password=get_password_hash(user.password),
     )
-
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
@@ -60,9 +61,9 @@ async def create_user(
     summary="Listar usuários",
 )
 async def list_users(
-    offset: int = Query(0, ge=0, description="Número de registros para pular"),
+    offset: int = Query(0, ge=0, description="Registros para pular"),
     limit: int = Query(100, ge=1, le=100, description="Limite de registros"),
-    search: Optional[str] = Query(None, description="Busca por username ou email"),
+    search: str | None = Query(None, description="Busca por username ou email"),
     db: AsyncSession = Depends(get_session),
 ):
     query = select(User)
@@ -74,15 +75,13 @@ async def list_users(
         )
 
     query = query.offset(offset).limit(limit)
-
     result = await db.execute(query)
-    users = result.scalars().all()
 
-    return {"users": users, "offset": offset, "limit": limit}
+    return {"users": result.scalars().all(), "offset": offset, "limit": limit}
 
 
 @router.get(
-    path="/{user_id}",
+    "/{user_id}",
     status_code=status.HTTP_200_OK,
     response_model=UserPublicSchema,
     summary="Buscar usuário por ID",
@@ -99,14 +98,14 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_session)):
 
 
 @router.put(
-    path="/{user_id}",
-    status_code=status.HTTP_201_CREATED,
+    "/{user_id}",
+    status_code=status.HTTP_200_OK,
     response_model=UserPublicSchema,
     summary="Atualizar usuário",
 )
 async def update_user(
     user_id: int,
-    user_update: UserSchema,
+    user_update: UserUpdateSchema,
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(Authentication.get_current_user),
 ):
@@ -123,7 +122,7 @@ async def update_user(
         username_exists = await db.scalar(
             select(
                 exists().where(
-                    (User.username == update_data["username"]) & (User.id) != user_id
+                    (User.username == update_data["username"]) & (User.id != user_id)
                 )
             )
         )
@@ -136,7 +135,7 @@ async def update_user(
         email_exists = await db.scalar(
             select(
                 exists().where(
-                    (User.email == update_data["email"]) & (User.id) != user_id
+                    (User.email == update_data["email"]) & (User.id != user_id)
                 )
             )
         )
@@ -145,7 +144,7 @@ async def update_user(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=EMAIL_EXISTS
             )
 
-    if "password" in update_data:
+    if update_data.get("password"):
         update_data["password"] = get_password_hash(update_data["password"])
 
     for field, value in update_data.items():
@@ -153,11 +152,14 @@ async def update_user(
 
     await db.commit()
     await db.refresh(user)
+
     return user
 
 
 @router.delete(
-    path="/{user_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Deletar usuário"
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Deletar usuário",
 )
 async def delete_user(
     user_id: int,
@@ -173,5 +175,3 @@ async def delete_user(
 
     await db.delete(user)
     await db.commit()
-
-    return

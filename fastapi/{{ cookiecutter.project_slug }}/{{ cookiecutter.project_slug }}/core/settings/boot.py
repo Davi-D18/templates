@@ -1,25 +1,22 @@
-from enum import Enum
+from enum import StrEnum
 
-from pydantic import ConfigDict
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Environment(str, Enum):
+class Environment(StrEnum):
     """Enum com os ambientes disponíveis da aplicação."""
 
-    DEVELOPMENT = 'development'
-    PRODUCTION = 'production'
+    DEVELOPMENT = "development"
+    PRODUCTION = "production"
 
 
 class BootSettings(BaseSettings):
-    """
-    Configurações de inicialização para determinar o ambiente da aplicação.
-    """
+    """Configurações de inicialização para determinar o ambiente."""
 
-    model_config = ConfigDict(
-        env_file='.env',
-        env_file_encoding='utf-8',
-        extra='ignore',
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
-    ENVIRONMENT: Environment
+    ENVIRONMENT: Environment = Environment.DEVELOPMENT

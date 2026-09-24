@@ -1,5 +1,5 @@
-from car_api.core.configs.database import BaseModel
+from {{ cookiecutter.project_slug }}.core.configs.database import BaseModel
 
-from .users import User
+{% if cookiecutter.use_authentication == "yes" %}from .users import User
 
-__all__ = ["BaseModel", "User"]
+{% endif %}__all__ = ["BaseModel"{% if cookiecutter.use_authentication == "yes" %}, "User"{% endif %}]

@@ -1,14 +1,13 @@
-from typing import List
-
 from .base import BaseSettings
 
 
 class ProductionSettings(BaseSettings):
     """Configurações específicas para o ambiente de produção."""
+
     DEBUG: bool = False
 
-    # CORS Settings
-    CORS_ORIGINS: List[str]
-    CORS_METHODS: List[str]
-    CORS_HEADERS: List[str]
-    ALLOWED_HOSTS: List[str]
+    # CORS / hosts (strings separadas por vírgula)
+    CORS_ORIGINS: str = ""
+    CORS_METHODS: str = "*"
+    CORS_HEADERS: str = "*"
+    ALLOWED_HOSTS: str = ""
