@@ -5,13 +5,13 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from car_api.core.settings import settings
-from car_api.models import BaseModel
+from {{ cookiecutter.project_slug }}.app.models import BaseModel
+from {{ cookiecutter.project_slug }}.core.settings import settings
 
 
 def configure_alembic():
     config = context.config
-    config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
+    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
     if config.config_file_name is not None:
         fileConfig(config.config_file_name)
@@ -46,8 +46,8 @@ async def run_async_migrations():
     config, _ = configure_alembic()
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section),
-        prefix='sqlalchemy.',
-        poolclass=pool.NullPool
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
     )
 
     async with connectable.connect() as connection:

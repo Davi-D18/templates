@@ -1,31 +1,24 @@
-from typing import Mapping
+from collections.abc import Mapping
 
-from car_api.core.messages.env import ENVIRONMENT_INVALID, ENVIRONMENT_NOT_DEFINED
-
+from ..messages.env import ENVIRONMENT_INVALID
 from .boot import BootSettings
 from .development import DevelopmentSettings
 from .production import ProductionSettings
 
-boot_settings = BootSettings()
+_boot = BootSettings()
 
 ALL_ENVIRONMENTS: Mapping[str, type] = {
-    'DEVELOPMENT': DevelopmentSettings,
-    'PRODUCTION': ProductionSettings,
+    "DEVELOPMENT": DevelopmentSettings,
+    "PRODUCTION": ProductionSettings,
 }
 
-env = boot_settings.ENVIRONMENT
-
-if not env:
-    raise ValueError(ENVIRONMENT_NOT_DEFINED)
-
-env_up = env.upper()
+_env_key = _boot.ENVIRONMENT.value.upper()
 
 try:
-    Settings = ALL_ENVIRONMENTS[env_up]
-except KeyError:
-    raise ValueError(ENVIRONMENT_INVALID)
+    Settings = ALL_ENVIRONMENTS[_env_key]
+except KeyError as exc:
+    raise ValueError(ENVIRONMENT_INVALID) from exc
 
 settings = Settings()
-settings.model_dump()
 
-__all__ = ['Settings', 'settings']
+__all__ = ["Settings", "settings"]
