@@ -1,0 +1,55 @@
+# O Docker Compose carrega o `.env` automaticamente para substituição (${VAR}) e
+# injeta as variáveis no container via `env_file`.
+services:
+  web:
+    build: .
+    command: ./scripts/entrypoint.sh
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+{%- if cookiecutter.database == "sqlite3" %}
+      DATABASE_URL: sqlite+aiosqlite:////data/app.db
+{%- elif cookiecutter.database == "postgresql" %}
+      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+{%- else %}
+      DATABASE_URL: mysql+aiomysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
+{%- endif %}
+    ports:
+      - "8000:8000"
+{%- if cookiecutter.database == "sqlite3" %}
+    volumes:
+      - data:/data
+{%- else %}
+    depends_on:
+      db:
+        condition: service_healthy
+{%- endif %}
+{% if cookiecutter.database != "sqlite3" %}
+  db:
+    image: {{ "postgres:16-alpine" if cookiecutter.database == "postgresql" else "mysql:8" }}
+    environment:
+{%- if cookiecutter.database == "postgresql" %}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+{%- else %}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+{%- endif %}
+    volumes:
+      - data:/var/lib/{{ "postgresql/data" if cookiecutter.database == "postgresql" else "mysql" }}
+    healthcheck:
+{%- if cookiecutter.database == "postgresql" %}
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+{%- else %}
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p${DB_PASSWORD}"]
+{%- endif %}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+{% endif %}
+volumes:
+  data:
