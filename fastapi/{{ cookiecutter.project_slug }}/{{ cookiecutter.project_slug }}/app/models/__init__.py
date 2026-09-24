@@ -1,6 +1,5 @@
-from car_api.core.libs.sqlalchemy import BaseModel
+from {{ cookiecutter.project_slug }}.core.configs.database import BaseModel
 
-from .cars import Brand, Car
-from .users import User
+{% if cookiecutter.use_authentication == "yes" %}from .users import User
 
-__all__ = ["BaseModel", "User", "Brand", "Car"]
+{% endif %}__all__ = ["BaseModel"{% if cookiecutter.use_authentication == "yes" %}, "User"{% endif %}]
